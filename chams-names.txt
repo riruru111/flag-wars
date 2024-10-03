@@ -1,0 +1,166 @@
+--//Toggle\\--
+getgenv().Toggle = true -- This toggles the ESP, turning it to false will turn it off
+getgenv().TC = false -- This toggles team check, turning it on will turn on team check
+local PlayerName = "Name" -- You can decide if you want the Player's name to be a display name which is "DisplayName", or username which is "Name"
+
+--//Variables\\--
+local P = game:GetService("Players")
+local LP = P.LocalPlayer
+local Workspace = game:GetService("Workspace") -- Reference to the Workspace
+
+--//Debounce\\--
+local DB = false
+
+--//Loop\\--
+while task.wait() do
+	if not getgenv().Toggle then
+		break
+	end
+	if DB then 
+		return 
+	end
+	DB = true
+
+	pcall(function()
+		for _, v in pairs(P:GetChildren()) do
+			if v:IsA("Player") and v ~= LP then
+				if v.Character then
+					local humanoid = v.Character:FindFirstChild("Humanoid")
+
+					if humanoid then
+						local hp = math.round(humanoid.Health) -- Get the player's current health and round it
+						
+						-- Check for rose6 and rose7 in workspace
+						local rose6 = Workspace:FindFirstChild("rose6")
+						local rose7 = Workspace:FindFirstChild("rose7")
+
+						-- Only create or update ESP for players on different teams
+						if v.TeamColor ~= LP.TeamColor then
+							if v.Character:FindFirstChild("Totally NOT Esp") == nil and v.Character:FindFirstChild("Icon") == nil then
+								--//ESP-Highlight\\--
+								local ESP = Instance.new("Highlight", v.Character)
+
+								ESP.Name = "Totally NOT Esp"
+								ESP.Adornee = v.Character
+								ESP.Archivable = true
+								ESP.Enabled = true
+								ESP.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+								ESP.FillColor = v.TeamColor.Color
+								ESP.FillTransparency = 0.5
+								ESP.OutlineColor = Color3.fromRGB(255, 255, 255)
+								ESP.OutlineTransparency = 0
+
+								--//ESP-Text\\--
+								local Icon = Instance.new("BillboardGui", v.Character)
+								local ESPText = Instance.new("TextLabel")
+
+								Icon.Name = "Icon"
+								Icon.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+								Icon.Active = true
+								Icon.AlwaysOnTop = true
+								Icon.ExtentsOffset = Vector3.new(0, 1, 0)
+								Icon.LightInfluence = 1.000
+
+								-- Set a temporary size for the icon
+								Icon.Size = UDim2.new(0, 100, 0, 50)
+
+								ESPText.Name = "ESP Text"
+								ESPText.Parent = Icon
+								ESPText.BackgroundTransparency = 1 -- Remove background
+								ESPText.Size = UDim2.new(0, 100, 0, 20) -- Set the size to fit the text
+								ESPText.Font = Enum.Font.SciFi
+								ESPText.Text = v[PlayerName].." | HP: "..hp -- Change from Distance to HP
+								ESPText.TextColor3 = v.TeamColor.Color
+								ESPText.TextSize = 12.000 -- Slightly larger text size for clarity
+								ESPText.TextWrapped = true
+								ESPText.TextStrokeTransparency = 0 -- Set stroke transparency to 0 for solid stroke
+								ESPText.TextStrokeColor3 = Color3.fromRGB(0, 0, 0) -- Set stroke color to black
+
+								-- Update the background size to match the text size
+								ESPText.Size = UDim2.new(0, ESPText.TextBounds.X + 10, 0, ESPText.TextBounds.Y + 10) -- Add padding to the background
+								
+								-- Create a border around the background
+								local Border = Instance.new("Frame")
+								Border.Parent = Icon
+								Border.Size = ESPText.Size
+								Border.BackgroundColor3 = Color3.new(0, 0, 0) -- Set border color to black
+								Border.BackgroundTransparency = 1 -- Make border transparent
+								Border.BorderSizePixel = 1 -- Set border size
+								Border.Position = UDim2.new(0, 0, 0, 0) -- Position it correctly
+								Border.ZIndex = ESPText.ZIndex - 1 -- Place it behind the text
+
+							else
+								-- Update existing ESP properties
+								local espHighlight = v.Character:FindFirstChild("Totally NOT Esp")
+								local espIcon = v.Character:FindFirstChild("Icon")
+								local espText = espIcon and espIcon:FindFirstChild("ESP Text")
+
+								if espHighlight and espText then
+									espHighlight.FillColor = v.TeamColor.Color
+									-- Update the health display
+									espText.Text = v[PlayerName].." | HP: "..hp
+									
+									-- Update the background size to match the new text size
+									espText.Size = UDim2.new(0, espText.TextBounds.X + 10, 0, espText.TextBounds.Y + 10)
+
+									-- Update the border size to match the text background
+									local border = espIcon:FindFirstChild("Border")
+									if border then
+										border.Size = espText.Size
+									end
+								end
+							end
+						else
+							-- Hide ESP for teammates
+							local espHighlight = v.Character:FindFirstChild("Totally NOT Esp")
+							local espIcon = v.Character:FindFirstChild("Icon")
+
+							if espHighlight then
+								espHighlight.Enabled = false
+							end
+							if espIcon then
+								espIcon.Enabled = false
+							end
+						end
+
+						-- Highlight logic for rose6
+						if rose6 then
+							local espHighlight = v.Character:FindFirstChild("Totally NOT Esp")
+							if espHighlight then
+								espHighlight.Enabled = true -- Show highlight if rose6 is found
+							end
+						else
+							local espHighlight = v.Character:FindFirstChild("Totally NOT Esp")
+							if espHighlight then
+								espHighlight.Enabled = false -- Hide highlight if rose6 is not found
+							end
+						end
+
+						-- Name text logic for rose7
+						if rose7 then
+							local espIcon = v.Character:FindFirstChild("Icon")
+							if espIcon then
+								local espText = espIcon:FindFirstChild("ESP Text")
+								if espText then
+									espText.Visible = true -- Show name text if rose7 is found
+								end
+							end
+						else
+							local espIcon = v.Character:FindFirstChild("Icon")
+							if espIcon then
+								local espText = espIcon:FindFirstChild("ESP Text")
+								if espText then
+									espText.Visible = false -- Hide name text if rose7 is not found
+								end
+							end
+						end
+					end
+				end
+			end
+		end
+	end)
+
+	wait()
+
+	DB = false
+end
