@@ -1,0 +1,54 @@
+local player = game.Players.LocalPlayer
+local chestParts = workspace:GetChildren()
+
+local function findChests(chestName)
+    local chestList = {}
+    for _, part in ipairs(chestParts) do
+        if part.Name == chestName then
+            table.insert(chestList, part)
+        end
+    end
+    return chestList
+end
+
+local function teleportToChest(chest)
+    local character = player.Character or player.CharacterAdded:Wait()
+    local endTime = tick() + 1
+
+    while tick() < endTime do
+        character:SetPrimaryPartCFrame(chest.CFrame)
+        wait(0.1)
+    end
+end
+
+while true do
+    local chest3List = findChests("Chest3")
+    local chest2List = #chest3List > 0 and findChests("Chest2") or {}
+    local chest1List = #chest2List > 0 and findChests("Chest1") or {}
+
+    local selectedChestList = #chest3List > 0 and chest3List or chest2List
+    if #selectedChestList == 0 then
+        selectedChestList = chest1List
+    end
+
+    if #selectedChestList == 0 then
+        player:Kick("No chests found! You have been kicked out.")
+        break
+    end
+
+    local firstChest = selectedChestList[math.random(1, #selectedChestList)]
+    teleportToChest(firstChest)
+
+    local secondChest = selectedChestList[math.random(1, #selectedChestList)]
+
+    while secondChest == firstChest do
+        secondChest = selectedChestList[math.random(1, #selectedChestList)]
+    end
+
+    teleportToChest(secondChest)
+
+    local character = player.Character or player.CharacterAdded:Wait()
+    character:BreakJoints()
+
+    wait(6)
+end
